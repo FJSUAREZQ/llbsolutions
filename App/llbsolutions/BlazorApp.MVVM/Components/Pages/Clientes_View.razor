@@ -1,0 +1,68 @@
+﻿@page "/ClientesVM"
+@rendermode InteractiveServer
+@using BlazorApp.MVVM.ViewModel
+@inject ClientesViewModel Vm
+
+
+<h3>Clientes</h3>
+
+@if (!string.IsNullOrWhiteSpace(Vm.ErrorMessage))
+{
+    <p class="text-danger">@Vm.ErrorMessage</p>
+}
+else if (Vm.IsLoading)
+{
+    <p>Cargando clientes...</p>
+}
+else if (Vm.Customers.Any())
+{
+    <table class="table table-striped table-bordered table-hover align-middle">
+        <thead class="table-dark text-center">
+            <tr>
+                <th scope="col">Nombre</th>
+                <th scope="col">Correo electrónico</th>
+                <th scope="col">Puntos de Fidelización</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cliente in Vm.Customers)
+            {
+                <tr>
+                    <td class="fw-semibold">@cliente.Name</td>
+                    <td class="text-break">@cliente.Email</td>
+                    <td class="text-success fw-bold">@cliente.LoyaltyPoints</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No hay clientes disponibles.</p>
+}
+
+
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            bool sesionValida = await Vm.VerificarSesionAsync(firstRender);
+            if (!sesionValida)
+            {
+                StateHasChanged(); // Fuerza un nuevo render antes de que termine el ciclo
+                return;
+            }
+
+            await Vm.LoadCustomersAsync();
+            StateHasChanged(); // Para refrescar con los datos cargados
+        }
+    }
+
+
+}
+
+
+
+

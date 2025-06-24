@@ -1,0 +1,118 @@
+﻿@page "/PagoVM"
+@rendermode InteractiveServer
+@using BlazorApp.MVVM.ViewModel
+@using BlazorApp.MVVM.Models
+@inject PagoViewModel PagoVm
+
+<h3>Finalizar Compra</h3>
+
+@if (!PagoVm.Items.Any())
+{
+    <div class="alert alert-warning mt-4 text-center">
+        <i class="bi bi-cart-x-fill me-2"></i>
+        No hay productos en el carrito.
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-semibold bg-light">
+                Información del Cliente
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre del cliente:</label>
+                        <input class="form-control" @bind="@PagoVm.CustomerName" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Dirección del cliente:</label>
+                        <input class="form-control" @bind="@PagoVm.CustomerAddress" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Método de pago:</label>
+                        <select class="form-select" @bind="@PagoVm.SelectedPaymentMethod">
+                            @foreach (var method in PagoVm.PaymentMethods)
+                            {
+                                <option value="@method">@method</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="fw-bold mb-3">Resumen de la compra</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in PagoVm.Items)
+                    {
+                        <tr>
+                            <td class="text-start">@item.Product.Title</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.Product.Price.ToString("C")</td>
+                            <td>@item.Subtotal.ToString("C")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4 text-end">
+            <p><strong>Subtotal:</strong> @PagoVm.SubTotal.ToString("C")</p>
+            <p><strong>Descuento:</strong> @PagoVm.Discount.ToString("C")</p>
+            <p class="fs-5 fw-bold"><strong>Total:</strong> @PagoVm.Total.ToString("C")</p>
+            <div class="d-flex justify-content-end gap-3">
+                <span class="badge bg-success">Puntos ganados: @PagoVm.PointsEarned</span>
+                <span class="badge bg-secondary">Puntos usados: @PagoVm.PointsUsed</span>
+            </div>
+        </div>
+
+        <div class="mt-4 text-end">
+            <button class="btn btn-success btn-lg" @onclick="PagoVm.FinalizePurchaseCommand.ExecuteAsync">
+                <i class="bi bi-file-earmark-arrow-down me-2"></i>
+                Confirmar y Descargar Factura
+            </button>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrWhiteSpace(PagoVm.ErrorMessage))
+{
+    <div class="alert alert-danger mt-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        @PagoVm.ErrorMessage
+    </div>
+}
+
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await PagoVm.LoadCartAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            bool sesionValida = await PagoVm.VerificarSesionAsync(firstRender);
+            if (!sesionValida)
+            {
+                StateHasChanged(); // Fuerza un nuevo render antes de que termine el ciclo
+                return;
+            }
+        }
+    }
+}

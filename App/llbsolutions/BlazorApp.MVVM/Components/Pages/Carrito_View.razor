@@ -1,0 +1,143 @@
+﻿@page "/CarritoVM"
+@rendermode InteractiveServer
+@using BlazorApp.MVVM.ViewModel
+@using BlazorApp.MVVM.Models
+@using BlazorApp.MVVM.Services
+@inject IShoppingCartService CartService
+@inject CarritoViewModel CartVm
+
+<h3>Carrito de Compras</h3>
+
+
+@if (!CartVm.Items.Any())
+{
+    <div class="alert alert-warning mt-4 text-center">
+        <i class="bi bi-cart-x-fill me-2"></i> No hay productos en el carrito.
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Producto</th>
+                        <th style="width: 100px;">Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                        <th>Puntos Ganados</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in CartVm.Items)
+                    {
+                        <tr>
+                            <td class="text-start">@item.Product.Title</td>
+                            <td>
+                                <input type="number"
+                                       min="1"
+                                       class="form-control text-center"
+                                       style="width: 80px;"
+                                       @bind="@item.Quantity"
+                                       @bind:event="onchange"
+                                       @bind:after="() => CartVm.UpdateQuantityCommand.Execute(item)" />
+                            </td>
+                            <td>@item.Product.Price.ToString("C")</td>
+                            <td>@item.Subtotal.ToString("C")</td>
+                            <td>@item.EarnedPoints</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        title="Eliminar"
+                                        @onclick="() => CartVm.RemoveItemCommand.Execute(item)">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row mt-5 g-3">
+            <div class="col-md-6">
+                <div class="alert alert-success">
+                    <i class="bi bi-stars"></i> Ganarás <strong>@CartVm.TotalEarnedPoints</strong> puntos en esta compra.
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header fw-semibold bg-light">
+                        Aplicar Puntos – @CartVm.UserName
+                    </div>
+                    <div class="card-body">
+                        <p>Tienes <strong>@CartVm.AvailablePoints</strong> puntos disponibles.</p>
+                        <div class="input-group mb-2">
+                            <input type="number"
+                                   class="form-control"
+                                   min="0"
+                                   max="@CartVm.AvailablePoints"
+                                   placeholder="Puntos a canjear"
+                                   @bind="@CartVm.PointsToRedeem" />
+                            <button class="btn btn-primary" @onclick="CartVm.ApplyPointsCommand.Execute">
+                                Aplicar
+                            </button>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(CartVm.ErrorMessage))
+                        {
+                            <div class="alert alert-danger mt-2">
+                                @CartVm.ErrorMessage
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 text-end">
+            <p><strong>Subtotal:</strong> @CartVm.SubTotal.ToString("C")</p>
+            <p><strong>Descuento:</strong> @CartVm.Discount.ToString("C")</p>
+            <h4><strong>Total:</strong> @CartVm.Total.ToString("C")</h4>
+
+            <div class="d-flex justify-content-end gap-3 mt-3">
+                <button class="btn btn-success" @onclick="CartVm.BuyNowCommand.Execute">
+                    <i class="bi bi-credit-card"></i> Pagar
+                </button>
+                <button class="btn btn-outline-danger" @onclick="CartVm.ClearCartCommand.Execute">
+                    <i class="bi bi-cart-x"></i> Vaciar Carrito
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await CartVm.LoadCartAsync();
+        CartService.OnChange += StateHasChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            bool sesionValida = await CartVm.VerificarSesionAsync(firstRender);
+            if (!sesionValida)
+            {
+                StateHasChanged(); // Fuerza un nuevo render antes de que termine el ciclo
+                return;
+            }
+
+        }
+    }
+
+    public void Dispose()
+    {
+        CartService.OnChange -= StateHasChanged;
+    }
+}
