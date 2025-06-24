@@ -57,7 +57,7 @@ dotnet build
 dotnet run
 
 
-- Acceder vía navegador en https://localhost:5001
+- Acceder vía navegador en https://localhost:5121
 
 🔐 Seguridad de sesión
 - El estado de autenticación se guarda cifrado en el navegador usando ProtectedLocalStorage.
