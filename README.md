@@ -44,31 +44,31 @@ Clean Architecture:
 
 ## Cómo ejecutar el proyecto
 
-1. Clonar el repositorio:
-   ```bash
-   git clone https://github.com/tu-usuario/tu-repo.git
-   cd tu-repo
+- Clona el repositorio:
+	git clone https://github.com/tu-usuario/tu-repo.git
+	cd tu-repo
+- Restaura paquetes y compila:
+	dotnet restore
+	dotnet build
+- Establece el proyecto Blazor como proyecto de inicio
+	Si usas Visual Studio:
+		- Haz clic derecho sobre el proyecto BlazorApp (o como se llame tu .csproj)
+		- Selecciona "Establecer como proyecto de inicio"
+	- O desde terminal:
+		dotnet run --project BlazorApp/BlazorApp.csproj
+- Accede a la aplicación: Abre tu navegador en https://localhost:5121 o la URL que indique la consola.
 
 
-- Restaurar paquetes y compilar:
-dotnet restore
-dotnet build
-- Ejecutar localmente:
-dotnet run
-
-
-- Acceder vía navegador en https://localhost:5121
-
-🔐 Seguridad de sesión
+ Seguridad de sesión
 - El estado de autenticación se guarda cifrado en el navegador usando ProtectedLocalStorage.
 - Si el usuario no está autenticado o su sesión caduca, se redirige automáticamente a la vista /Login.
 
-📌 Consideraciones
+ Consideraciones
 - El archivo .gitignore está configurado para permitir subir la base de datos SQLite y las migraciones.
 - El proyecto sigue una estructura modular y escalable: cada vista tiene su propio ViewModel e inyección limpia de dependencias.
 - El sistema está diseñado para ser extensible: puedes conectar una API externa, exportar facturas como PDF o implementar Identity Server sin romper la arquitectura actual.
 
-🧪 Siguiente etapa sugerida
+ Siguiente etapa sugerida
 - Dashboard de historial de compras por usuario
 - Vinculación con sistema de recompensas o cupones
 - Autenticación externa (Google, Microsoft, etc.)
